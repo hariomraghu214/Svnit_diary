@@ -8,13 +8,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Grade Calculator, SGPA Calculator & Reference for SVNIT students">
-<link rel="manifest" href="/manifest.json" />
+
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <meta name="theme-color" content="#6366f1">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -478,7 +479,21 @@ function App() {
     try { localStorage.setItem('svnit_pwa_dismissed','true'); } catch(e) {}
     setPwaDismissed(true);
   };
-
+const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'SVNIT Academic Dashboard',
+          text: 'Check out this Attendance & Grade Tracker for SVNIT students!',
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log("Share failed:", err);
+      }
+    } else {
+      setShareOpen(true);
+    }
+  };
   const copyLink = () => {
     try { navigator.clipboard.writeText(window.location.href); } catch(e) {}
     setCopied(true);
