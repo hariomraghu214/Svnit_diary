@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +9,32 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Grade Calculator, SGPA Calculator & Reference for SVNIT students">
 <meta name="theme-color" content="#6366f1">
+<!-- Inline manifest via data URI — no external manifest.json file needed -->
+<link rel="manifest" id="pwa-manifest">
+<script>
+(function() {
+  var manifest = {
+    name: "SVNIT Academic Dashboard",
+    short_name: "SVNIT Diary",
+    description: "Grade Calculator, SGPA Calculator & Reference for SVNIT students",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#0f172a",
+    theme_color: "#6366f1",
+    icons: [
+      {
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%236366f1'/%3E%3Cpath d='M96 40L40 68l56 28 56-28-56-28zM40 124l56 28 56-28M40 96l56 28 56-28' fill='none' stroke='white' stroke-width='12' stroke-linecap='round'/%3E%3C/svg%3E",
+        sizes: "192x192",
+        type: "image/svg+xml",
+        purpose: "any maskable"
+      }
+    ]
+  };
+  var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  var url  = URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').setAttribute('href', url);
+})();
+</script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -69,7 +96,6 @@ function Toggle({ on, onChange, dark }) {
   );
 }
 
-// ── Hoisted outside any parent component so React never remounts it ──
 function InputRow({ label, value, onChange, onBlur, max, dark, inputRef, onEnter }) {
   const border = dark ? '#334155' : '#e2e8f0';
   const muted  = dark ? '#94a3b8' : '#64748b';
@@ -100,7 +126,6 @@ function InputRow({ label, value, onChange, onBlur, max, dark, inputRef, onEnter
   );
 }
 
-// ── Hoisted outside ReferenceTab so it's never recreated per render ──
 function GradeTable({ title, rows, dark }) {
   const border = dark ? '#334155' : '#e2e8f0';
   const muted  = dark ? '#94a3b8' : '#64748b';
@@ -137,7 +162,25 @@ function GradeTable({ title, rows, dark }) {
   );
 }
 
-// QRCode component is defined below (single declaration to avoid duplicate-identifier error)
+// Single QRCode component — generates real QR via qrcodejs library
+const QRCode = () => {
+  React.useEffect(() => {
+    if (window.QRCode) {
+      const container = document.getElementById('qrcode-gen');
+      if (container) {
+        container.innerHTML = '';
+        new window.QRCode(container, {
+          text: 'https://hariomraghu214.github.io/Svnit_diary/',
+          width: 160,
+          height: 160,
+          colorDark: "#000000",
+          colorLight: "#ffffff"
+        });
+      }
+    }
+  }, []);
+  return <div id="qrcode-gen" style={{ display: 'flex', justifyContent: 'center', padding: '10px', background: 'white', borderRadius: '8px' }}></div>;
+};
 
 function GradeCalculatorTab({ dark }) {
   const [withTutorial, setWithTutorial] = useState(false);
@@ -148,12 +191,9 @@ function GradeCalculatorTab({ dark }) {
   const [quiz2, setQuiz2] = useState('');
   const [tutorial, setTutorial] = useState('');
 
-  // Refs for Enter-to-next-field focus management
   const refs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
 
-  // Allow free typing; only clamp on blur so focus is never interrupted
   const handleChange = (setter) => (raw) => {
-    // Strip negatives immediately, but let partial values (e.g. "") through
     if (raw === '' || raw === '-') { setter(''); return; }
     setter(raw);
   };
@@ -167,7 +207,6 @@ function GradeCalculatorTab({ dark }) {
   };
 
   const maxTotal = withTutorial ? 125 : 100;
-  // Use clamped values for calculation (raw strings are display-only)
   const clamp = (v, max) => { const n = parseFloat(v); return isNaN(n) ? 0 : Math.min(Math.max(0,n), max); };
   const total = clamp(midSem,30)+clamp(endSem,50)+clamp(quiz1,10)+clamp(quiz2,10)+(withTutorial?clamp(tutorial,25):0);
   const grade = withTutorial ? getGrade125(total) : getGrade100(total);
@@ -184,7 +223,6 @@ function GradeCalculatorTab({ dark }) {
     borderRadius:'12px', padding:'16px', marginBottom:'14px'
   };
 
-  // Field config — drives the list without any inline component definitions
   const fields = [
     { label:'Mid-Sem',  max:30, value:midSem,  setter:setMidSem,  ref:refs[0], next:refs[1] },
     { label:'End-Sem',  max:50, value:endSem,  setter:setEndSem,  ref:refs[1], next:refs[2] },
@@ -417,38 +455,51 @@ function ReferenceTab({ dark }) {
     </div>
   );
 }
-const QRCode = () => {
-  React.useEffect(() => {
-    if (window.QRCode) {
-      const container = document.getElementById('qrcode-gen');
-      if (container) {
-        container.innerHTML = ''; 
-        new window.QRCode(container, {
-          text: window.location.href,
-          width: 160,
-          height: 160,
-          colorDark: "#000000",
-          colorLight: "#ffffff"
-        });
-      }
-    }
-  }, []);
-  return <div id="qrcode-gen" style={{ display: 'flex', justifyContent: 'center', padding: '10px', background: 'white', borderRadius: '8px' }}></div>;
-};
+
 function App() {
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pwaDismissed, setPwaDismissed] = useState(true);
+  // installPrompt held in a ref so it's always current without re-renders
+  const installPromptRef = useRef(null);
+  const [installReady, setInstallReady] = useState(false);
 
   useEffect(() => {
-    try { setPwaDismissed(localStorage.getItem('svnit_pwa_dismissed')==='true'); }
-    catch(e) { setPwaDismissed(false); }
-    // Hide banner if app is already installed (display-mode: standalone)
+    // Restore dismissed state
+    try {
+      if (localStorage.getItem('svnit_pwa_dismissed') === 'true') return;
+    } catch(e) {}
+
+    // Already installed as standalone — no need to show banner
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      setPwaDismissed(true);
+      return;
     }
+
+    // Listen for Chrome's install prompt — may fire before or after mount
+    const onPrompt = (e) => {
+      e.preventDefault();
+      installPromptRef.current = e;
+      setInstallReady(true);
+      setPwaDismissed(false);
+    };
+
+    // If prompt already captured by the plain script below, grab it
+    if (window.__pwaPrompt) {
+      installPromptRef.current = window.__pwaPrompt;
+      setInstallReady(true);
+      setPwaDismissed(false);
+    }
+
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('appinstalled', () => {
+      installPromptRef.current = null;
+      setInstallReady(false);
+      setPwaDismissed(true);
+    });
+
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
   }, []);
 
   useEffect(() => {
@@ -459,13 +510,30 @@ function App() {
     try { localStorage.setItem('svnit_pwa_dismissed','true'); } catch(e) {}
     setPwaDismissed(true);
   };
-const handleShare = async () => {
+
+  const handleInstall = async () => {
+    const prompt = installPromptRef.current;
+    if (!prompt) return;
+    try {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === 'accepted') {
+        installPromptRef.current = null;
+        setInstallReady(false);
+        setPwaDismissed(true);
+      }
+    } catch(err) {
+      console.warn('Install prompt error:', err);
+    }
+  };
+
+  const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'SVNIT Academic Dashboard',
           text: 'Check out this Attendance & Grade Tracker for SVNIT students!',
-          url: window.location.href,
+          url: 'https://hariomraghu214.github.io/Svnit_diary/',
         });
       } catch (err) {
         console.log("Share failed:", err);
@@ -473,9 +541,10 @@ const handleShare = async () => {
     } else {
       setShareOpen(true);
     }
-  }; // This closes handleShare
+  };
+
   const copyLink = () => {
-    try { navigator.clipboard.writeText(window.location.href); } catch(e) {}
+    try { navigator.clipboard.writeText('https://hariomraghu214.github.io/Svnit_diary/'); } catch(e) {}
     setCopied(true);
     setTimeout(()=>setCopied(false),2000);
   };
@@ -511,7 +580,7 @@ const handleShare = async () => {
           </div>
 
           <div style={{display:'flex',gap:'8px',alignItems:'center',flexShrink:0}}>
-           <button onClick={handleShare} title="Share"
+            <button onClick={handleShare} title="Share"
               style={{background:'none',border:`1px solid ${border}`,borderRadius:'8px',padding:'7px',cursor:'pointer',color:muted,display:'flex',alignItems:'center',justifyContent:'center'}}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             </button>
@@ -545,7 +614,7 @@ const handleShare = async () => {
               <div style={{fontSize:'12px',color:muted,marginTop:'8px'}}>Scan to open dashboard</div>
             </div>
             <div style={{background:dark?'#0f172a':'#f8fafc',borderRadius:'8px',padding:'10px 12px',fontSize:'12px',color:muted,marginBottom:'12px',fontFamily:'monospace',wordBreak:'break-all',border:`1px solid ${border}`}}>
-              {window.location.href}
+              https://hariomraghu214.github.io/Svnit_diary/
             </div>
             <button className="btn-primary" style={{width:'100%',padding:'10px',fontSize:'14px'}} onClick={copyLink}>
               {copied ? '✓ Copied to clipboard!' : 'Copy Link'}
@@ -554,7 +623,7 @@ const handleShare = async () => {
         </div>
       )}
 
-      {!pwaDismissed && (
+      {!pwaDismissed && installReady && (
         <div className="pwa-banner">
           <div style={{background:dark?'#1e293b':'white',borderTop:`1px solid ${border}`,padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
             <div style={{width:'38px',height:'38px',background:'#6366f1',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
@@ -562,10 +631,12 @@ const handleShare = async () => {
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:'13px',fontWeight:600,color:sub}}>Install SVNIT Academic Dashboard</div>
-              <div style={{fontSize:'12px',color:muted}}>For a better experience on your device</div>
+              <div style={{fontSize:'12px',color:muted}}>Add to home screen for quick access</div>
             </div>
             <div style={{display:'flex',gap:'8px',flexShrink:0}}>
-              <button id="pwa-install-btn" className="btn-primary" style={{fontSize:'12px',padding:'6px 14px',borderRadius:'7px'}} onClick={() => { if(window.__pwaPrompt) { window.__pwaPrompt.prompt(); window.__pwaPrompt.userChoice.then(() => { window.__pwaPrompt = null; setPwaDismissed(true); }); } }}>Install</button>
+              <button className="btn-primary" style={{fontSize:'12px',padding:'6px 14px',borderRadius:'7px'}} onClick={handleInstall}>
+                Install
+              </button>
               <button onClick={dismissPwa} style={{background:'none',border:`1px solid ${border}`,borderRadius:'7px',padding:'6px 12px',cursor:'pointer',color:muted,fontSize:'12px'}}>Later</button>
             </div>
           </div>
@@ -578,20 +649,39 @@ const handleShare = async () => {
 ReactDOM.render(<App/>, document.getElementById('root'));
 </script>
 <script>
-// Capture the beforeinstallprompt event for the Install button
+// Capture beforeinstallprompt ASAP (before React mounts)
+// React's useEffect will pick this up via window.__pwaPrompt
 window.__pwaPrompt = null;
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   window.__pwaPrompt = e;
 });
-// Hide banner if app is launched as installed PWA
 window.addEventListener('appinstalled', function() {
   window.__pwaPrompt = null;
 });
-// Register Service Worker only when sw.js is available
+
+// Register an inline Service Worker via Blob URL — no sw.js file needed
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(function() {
-    // sw.js not found (e.g. GitHub Pages) — silently ignore
+  var swCode = [
+    "const CACHE = 'svnit-v1';",
+    "self.addEventListener('install', e => {",
+    "  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])));",
+    "  self.skipWaiting();",
+    "});",
+    "self.addEventListener('activate', e => {",
+    "  e.waitUntil(clients.claim());",
+    "});",
+    "self.addEventListener('fetch', e => {",
+    "  e.respondWith(",
+    "    caches.match(e.request).then(r => r || fetch(e.request))",
+    "  );",
+    "});"
+  ].join('\n');
+  var swBlob = new Blob([swCode], { type: 'application/javascript' });
+  var swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(function(err) {
+    // Blob-URL SW may be blocked in some browsers — silently ignore
+    console.warn('SW registration skipped:', err.message);
   });
 }
 </script>
