@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Grade Calculator, SGPA Calculator & Reference for SVNIT students">
 
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"
-<link rel="apple-touch-icon" href="icons/icon-192.png"
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#6366f1">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -510,7 +510,7 @@ const handleShare = async () => {
     } else {
       setShareOpen(true);
     }
-  };
+  }; // This closes handleShare
   const copyLink = () => {
     try { navigator.clipboard.writeText(window.location.href); } catch(e) {}
     setCopied(true);
