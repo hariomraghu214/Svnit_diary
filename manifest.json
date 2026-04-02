@@ -1,0 +1,16 @@
+{
+  "name": "SVNIT Diary",
+  "short_name": "SVNIT Diary",
+  "start_url": "/Svnit_diary/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#fbbf24",
+  "description": "Attendance and Grade Tracker for SVNIT Students",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5833/5833290.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
