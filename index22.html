@@ -1,0 +1,600 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVNIT Academic Dashboard</title>
+<meta name="description" content="Grade Calculator, SGPA Calculator & Reference for SVNIT students">
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="theme-color" content="#6366f1">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  #root { min-height: 100vh; }
+
+  .toggle-track { width: 44px; height: 24px; border-radius: 12px; cursor: pointer; transition: background 0.2s; position: relative; flex-shrink: 0; }
+  .toggle-thumb { width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .tab-pill { padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; white-space: nowrap; user-select: none; }
+  .btn-primary { background: #6366f1; color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+  .btn-primary:hover { background: #4f46e5; }
+  .circle-progress { transform: rotate(-90deg); transform-origin: 64px 64px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
+  .pwa-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { opacity: 1; }
+  .header-wrap { position: sticky; top: 0; z-index: 50; }
+  @media (max-width: 600px) {
+    .tab-pill { padding: 6px 10px; font-size: 12px; }
+    .logo-text { display: none; }
+  }
+  @media (max-width: 400px) {
+    .tab-pill { padding: 5px 8px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const GRADE_POINTS = { AA:10, AB:9, BB:8, BC:7, CC:6, CD:5, DD:4, FF:0 };
+const GRADE_COLORS = {
+  AA:'#10b981', AB:'#34d399', BB:'#6366f1', BC:'#8b5cf6',
+  CC:'#f59e0b', CD:'#f97316', DD:'#ef4444', FF:'#dc2626'
+};
+
+function getGrade100(t) {
+  if(t>=80) return 'AA'; if(t>=70) return 'AB'; if(t>=60) return 'BB';
+  if(t>=50) return 'BC'; if(t>=45) return 'CC'; if(t>=40) return 'CD';
+  if(t>=36) return 'DD'; return 'FF';
+}
+function getGrade125(t) {
+  if(t>=100) return 'AA'; if(t>=88) return 'AB'; if(t>=75) return 'BB';
+  if(t>=63) return 'BC'; if(t>=56) return 'CC'; if(t>=50) return 'CD';
+  if(t>=45) return 'DD'; return 'FF';
+}
+
+function Toggle({ on, onChange, dark }) {
+  return (
+    <div onClick={() => onChange(!on)} className="toggle-track"
+      style={{background: on ? '#6366f1' : (dark ? '#334155' : '#cbd5e1')}}>
+      <div className="toggle-thumb" style={{left: on ? '23px' : '3px'}} />
+    </div>
+  );
+}
+
+// ── Hoisted outside any parent component so React never remounts it ──
+function InputRow({ label, value, onChange, onBlur, max, dark, inputRef, onEnter }) {
+  const border = dark ? '#334155' : '#e2e8f0';
+  const muted  = dark ? '#94a3b8' : '#64748b';
+  const sub    = dark ? '#cbd5e1' : '#334155';
+  const inputStyle = {
+    background: dark?'#0f172a':'#f8fafc',
+    border: `1px solid ${border}`,
+    color: dark?'#e2e8f0':'#1e293b',
+    borderRadius:'8px', padding:'8px 12px',
+    width:'100px', outline:'none', fontSize:'14px', textAlign:'center'
+  };
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'12px'}}>
+      <div style={{flex:1,fontSize:'14px',color:sub}}>
+        {label} <span style={{fontSize:'12px',color:muted}}>/ {max}</span>
+      </div>
+      <input
+        ref={inputRef}
+        type="number" min="0" max={max}
+        style={inputStyle}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onBlur={onBlur}
+        onKeyDown={e => { if(e.key==='Enter' && onEnter) onEnter(); }}
+        placeholder="0"
+      />
+    </div>
+  );
+}
+
+// ── Hoisted outside ReferenceTab so it's never recreated per render ──
+function GradeTable({ title, rows, dark }) {
+  const border = dark ? '#334155' : '#e2e8f0';
+  const muted  = dark ? '#94a3b8' : '#64748b';
+  const sub    = dark ? '#cbd5e1' : '#334155';
+  const bg2    = dark ? '#0f172a' : '#f8fafc';
+  const cardStyle = { background:dark?'#1e293b':'#ffffff', border:`1px solid ${border}`, borderRadius:'12px', overflow:'hidden', marginBottom:'14px' };
+  return (
+    <div style={cardStyle}>
+      <div style={{padding:'14px 16px',borderBottom:`1px solid ${border}`,display:'flex',alignItems:'center',gap:'8px'}}>
+        <div style={{width:'4px',height:'16px',background:'#6366f1',borderRadius:'2px'}}></div>
+        <div style={{fontSize:'14px',fontWeight:600,color:sub}}>{title}</div>
+      </div>
+      <table style={{width:'100%',borderCollapse:'collapse'}}>
+        <thead>
+          <tr style={{background:bg2}}>
+            {['Grade','Marks Range','Grade Points'].map((h,i)=>(
+              <th key={i} style={{padding:'10px 14px',fontSize:'11px',color:muted,fontWeight:600,textAlign:i===2?'center':'left',letterSpacing:'0.05em'}}>{h.toUpperCase()}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r,i)=>(
+            <tr key={i} style={{borderTop:`1px solid ${border}`}}>
+              <td style={{padding:'10px 14px'}}>
+                <span style={{background:GRADE_COLORS[r.g]+'22',color:GRADE_COLORS[r.g],padding:'3px 12px',borderRadius:'5px',fontSize:'13px',fontWeight:700}}>{r.g}</span>
+              </td>
+              <td style={{padding:'10px 14px',fontSize:'13px',color:sub}}>{r.range}</td>
+              <td style={{padding:'10px 14px',fontSize:'14px',fontWeight:700,textAlign:'center',color:dark?'#e2e8f0':'#1e293b'}}>{r.gp}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function QRCode() {
+  const size = 21;
+  const pattern = [
+    [1,1,1,1,1,1,1,0,0,1,0,0,1,0,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,0,1,0,0,1,0,1,0,0,1,0,1,1,1,0,1],
+    [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
+    [1,0,1,1,1,0,1,0,0,0,0,1,0,0,1,0,1,1,1,0,1],
+    [1,0,0,0,0,0,1,0,1,1,0,0,1,0,1,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0],
+    [1,0,1,1,0,1,1,1,0,1,0,1,0,1,1,0,1,0,1,1,0],
+    [0,1,0,0,1,0,0,0,1,0,1,0,1,0,0,1,0,1,0,0,1],
+    [1,0,1,0,1,1,1,0,0,1,1,0,0,1,1,0,1,0,1,0,1],
+    [0,1,0,1,0,0,0,1,0,0,1,0,1,0,0,1,0,1,0,1,0],
+    [1,0,1,1,0,1,1,0,1,1,0,1,0,0,1,0,1,0,1,1,0],
+    [0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,1,0,1,0,0,1],
+    [1,1,1,1,1,1,1,0,0,0,0,1,0,0,1,0,1,1,0,1,0],
+    [1,0,0,0,0,0,1,0,1,1,0,0,1,0,0,1,0,1,1,0,1],
+    [1,0,1,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0],
+    [1,0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,0,1],
+    [1,0,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,1,0],
+    [1,0,0,0,0,0,1,0,1,0,1,0,1,1,0,1,1,0,0,0,1],
+    [1,1,1,1,1,1,1,0,0,1,0,1,0,0,1,1,0,1,0,1,0],
+  ];
+  const cells = [];
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++)
+    cells.push(<rect key={`${r}-${c}`} x={c*9} y={r*9} width={8} height={8} rx="1" fill={pattern[r][c]?'#1e293b':'white'}/>);
+  return (
+    <div style={{background:'white',padding:'12px',borderRadius:'12px',display:'inline-block',border:'1px solid #e2e8f0'}}>
+      <svg width={size*9} height={size*9} viewBox={`0 0 ${size*9} ${size*9}`}>{cells}</svg>
+    </div>
+  );
+}
+
+function GradeCalculatorTab({ dark }) {
+  const [withTutorial, setWithTutorial] = useState(false);
+  const [attendance, setAttendance] = useState(false);
+  const [midSem, setMidSem] = useState('');
+  const [endSem, setEndSem] = useState('');
+  const [quiz1, setQuiz1] = useState('');
+  const [quiz2, setQuiz2] = useState('');
+  const [tutorial, setTutorial] = useState('');
+
+  // Refs for Enter-to-next-field focus management
+  const refs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
+
+  // Allow free typing; only clamp on blur so focus is never interrupted
+  const handleChange = (setter) => (raw) => {
+    // Strip negatives immediately, but let partial values (e.g. "") through
+    if (raw === '' || raw === '-') { setter(''); return; }
+    setter(raw);
+  };
+
+  const handleBlur = (setter, max) => () => {
+    setter(prev => {
+      const n = parseFloat(prev);
+      if (isNaN(n) || prev === '') return '';
+      return String(Math.min(Math.max(0, n), max));
+    });
+  };
+
+  const maxTotal = withTutorial ? 125 : 100;
+  // Use clamped values for calculation (raw strings are display-only)
+  const clamp = (v, max) => { const n = parseFloat(v); return isNaN(n) ? 0 : Math.min(Math.max(0,n), max); };
+  const total = clamp(midSem,30)+clamp(endSem,50)+clamp(quiz1,10)+clamp(quiz2,10)+(withTutorial?clamp(tutorial,25):0);
+  const grade = withTutorial ? getGrade125(total) : getGrade100(total);
+  let gp = GRADE_POINTS[grade];
+  if(attendance) gp = Math.max(0, gp-1);
+
+  const muted = dark ? '#94a3b8' : '#64748b';
+  const sub   = dark ? '#cbd5e1' : '#334155';
+  const bg2   = dark ? '#0f172a' : '#f8fafc';
+  const border= dark ? '#334155' : '#e2e8f0';
+  const cardStyle = {
+    background: dark?'#1e293b':'#ffffff',
+    border: `1px solid ${border}`,
+    borderRadius:'12px', padding:'16px', marginBottom:'14px'
+  };
+
+  // Field config — drives the list without any inline component definitions
+  const fields = [
+    { label:'Mid-Sem',  max:30, value:midSem,  setter:setMidSem,  ref:refs[0], next:refs[1] },
+    { label:'End-Sem',  max:50, value:endSem,  setter:setEndSem,  ref:refs[1], next:refs[2] },
+    { label:'Quiz 1',   max:10, value:quiz1,   setter:setQuiz1,   ref:refs[2], next:refs[3] },
+    { label:'Quiz 2',   max:10, value:quiz2,   setter:setQuiz2,   ref:refs[3], next: withTutorial ? refs[4] : null },
+    ...(withTutorial ? [{ label:'Tutorial', max:25, value:tutorial, setter:setTutorial, ref:refs[4], next:null }] : []),
+  ];
+
+  return (
+    <div>
+      <div style={cardStyle}>
+        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'12px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Options</div>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
+          <Toggle on={withTutorial} onChange={v=>{setWithTutorial(v);if(!v)setTutorial('');}} dark={dark}/>
+          <span style={{fontSize:'14px',color:sub}}>With Tutorial (125 Marks)</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          <Toggle on={attendance} onChange={setAttendance} dark={dark}/>
+          <span style={{fontSize:'14px',color:sub}}>Attendance 60–75% (−1 GP)</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+      </div>
+
+      <div style={cardStyle}>
+        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'14px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Marks Input</div>
+        {fields.map(f => (
+          <InputRow
+            key={f.label}
+            label={f.label}
+            max={f.max}
+            value={f.value}
+            dark={dark}
+            inputRef={f.ref}
+            onChange={handleChange(f.setter)}
+            onBlur={handleBlur(f.setter, f.max)}
+            onEnter={() => { if(f.next && f.next.current) f.next.current.focus(); }}
+          />
+        ))}
+      </div>
+
+      <div style={cardStyle}>
+        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'16px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Result</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',textAlign:'center'}}>
+          {[
+            {label:'Total Marks', value:`${total.toFixed(1)}`, sub2:`/ ${maxTotal}`, color:dark?'#e2e8f0':'#1e293b'},
+            {label:'Grade',       value:grade,                 sub2:'',              color:GRADE_COLORS[grade]},
+            {label:'Grade Points',value:String(gp),            sub2:'/ 10',          color:'#6366f1'},
+          ].map((item,i)=>(
+            <div key={i} style={{background:bg2,borderRadius:'10px',padding:'14px 8px'}}>
+              <div style={{fontSize:'11px',color:muted,marginBottom:'6px'}}>{item.label}</div>
+              <div style={{fontSize:'26px',fontWeight:700,color:item.color,lineHeight:1}}>{item.value}</div>
+              {item.sub2 && <div style={{fontSize:'11px',color:muted,marginTop:'3px'}}>{item.sub2}</div>}
+            </div>
+          ))}
+        </div>
+        {attendance && (
+          <div style={{marginTop:'12px',background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.3)',borderRadius:'8px',padding:'10px 14px',fontSize:'13px',color:'#f59e0b',display:'flex',gap:'8px',alignItems:'center'}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Attendance penalty applied: −1 GP (base grade: {grade} = {GRADE_POINTS[grade]} GP)
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SGPACalculatorTab({ dark }) {
+  const [subjects, setSubjects] = useState([]);
+  const [name, setName] = useState('');
+  const [credits, setCredits] = useState('3');
+  const [grade, setGrade] = useState('AA');
+
+  const placeholders = ['e.g., Thermodynamics','e.g., Engineering Graphics','e.g., Fluid Mechanics','e.g., Data Structures','e.g., Mathematics III'];
+  const ph = placeholders[subjects.length % placeholders.length];
+
+  const addSubject = () => {
+    if(!name.trim()) return;
+    setSubjects([...subjects, {id:Date.now(), name:name.trim(), credits:parseInt(credits), grade}]);
+    setName('');
+  };
+
+  const totalCredits = subjects.reduce((a,s)=>a+s.credits,0);
+  const weightedSum = subjects.reduce((a,s)=>a+s.credits*GRADE_POINTS[s.grade],0);
+  const sgpa = totalCredits===0 ? 0 : weightedSum/totalCredits;
+
+  const border = dark ? '#334155' : '#e2e8f0';
+  const muted = dark ? '#94a3b8' : '#64748b';
+  const sub = dark ? '#cbd5e1' : '#334155';
+  const bg2 = dark ? '#0f172a' : '#f8fafc';
+  const cardStyle = { background:dark?'#1e293b':'#ffffff', border:`1px solid ${border}`, borderRadius:'12px', marginBottom:'14px' };
+  const inputStyle = { background:bg2, border:`1px solid ${border}`, color:dark?'#e2e8f0':'#1e293b', borderRadius:'8px', padding:'8px 12px', width:'100%', outline:'none', fontSize:'14px' };
+  const selectStyle = { background:bg2, border:`1px solid ${border}`, color:dark?'#e2e8f0':'#1e293b', borderRadius:'8px', padding:'8px 12px', outline:'none', fontSize:'14px', width:'100%', cursor:'pointer' };
+
+  const circumference = 2*Math.PI*54;
+  const offset = circumference - (sgpa/10)*circumference;
+
+  return (
+    <div>
+      <div style={{...cardStyle, padding:'16px'}}>
+        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'12px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Add Subject</div>
+        <input style={{...inputStyle, marginBottom:'10px'}} placeholder={ph} value={name}
+          onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addSubject()}/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:'10px',alignItems:'end'}}>
+          <div>
+            <div style={{fontSize:'12px',color:muted,marginBottom:'4px'}}>Credits</div>
+            <select style={selectStyle} value={credits} onChange={e=>setCredits(e.target.value)}>
+              {[1,2,3,4,5].map(c=><option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{fontSize:'12px',color:muted,marginBottom:'4px'}}>Grade</div>
+            <select style={selectStyle} value={grade} onChange={e=>setGrade(e.target.value)}>
+              {Object.keys(GRADE_POINTS).map(g=><option key={g} value={g}>{g} ({GRADE_POINTS[g]} GP)</option>)}
+            </select>
+          </div>
+          <button className="btn-primary" onClick={addSubject} style={{height:'38px',whiteSpace:'nowrap',borderRadius:'8px'}}>
+            + Add
+          </button>
+        </div>
+      </div>
+
+      <div style={{...cardStyle, overflow:'hidden'}}>
+        {subjects.length===0 ? (
+          <div style={{padding:'36px',textAlign:'center',color:muted}}>
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{margin:'0 auto 12px',display:'block',opacity:0.35}}>
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+            <div style={{fontSize:'14px',fontWeight:500,marginBottom:'4px'}}>No subjects added yet</div>
+            <div style={{fontSize:'13px',opacity:0.7}}>Add a subject above to get started</div>
+          </div>
+        ) : (
+          <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <thead>
+              <tr style={{background:bg2}}>
+                {['Subject','Cr','Grade','GP',''].map((h,i)=>(
+                  <th key={i} style={{padding:'10px 12px',fontSize:'11px',color:muted,fontWeight:600,textAlign:i===0?'left':'center'}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {subjects.map(s=>(
+                <tr key={s.id} style={{borderTop:`1px solid ${border}`}}>
+                  <td style={{padding:'10px 12px',fontSize:'13px',color:sub,maxWidth:'140px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</td>
+                  <td style={{padding:'10px 12px',fontSize:'13px',textAlign:'center',color:muted}}>{s.credits}</td>
+                  <td style={{padding:'10px 12px',textAlign:'center'}}>
+                    <span style={{background:GRADE_COLORS[s.grade]+'22',color:GRADE_COLORS[s.grade],padding:'3px 10px',borderRadius:'5px',fontSize:'12px',fontWeight:700}}>{s.grade}</span>
+                  </td>
+                  <td style={{padding:'10px 12px',fontSize:'13px',textAlign:'center',fontWeight:600,color:dark?'#e2e8f0':'#1e293b'}}>{GRADE_POINTS[s.grade]}</td>
+                  <td style={{padding:'10px 8px',textAlign:'center'}}>
+                    <button onClick={()=>setSubjects(subjects.filter(x=>x.id!==s.id))}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#ef4444',fontSize:'18px',lineHeight:1,padding:'0 4px'}}>×</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'14px',alignItems:'stretch'}}>
+        <div style={{...cardStyle, padding:'20px', textAlign:'center', marginBottom:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+          <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'12px',textTransform:'uppercase',letterSpacing:'0.08em'}}>SGPA</div>
+          <svg width="128" height="128" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="54" fill="none" stroke={dark?'#334155':'#e2e8f0'} strokeWidth="10"/>
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#6366f1" strokeWidth="10"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              className="circle-progress"
+              style={{transition:'stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)'}}/>
+            <text x="64" y="60" textAnchor="middle" fontSize="22" fontWeight="700" fill={dark?'#e2e8f0':'#1e293b'}>{sgpa.toFixed(2)}</text>
+            <text x="64" y="78" textAnchor="middle" fontSize="12" fill={muted}>out of 10</text>
+          </svg>
+        </div>
+        <div style={{display:'grid',gridTemplateRows:'1fr 1fr',gap:'14px'}}>
+          {[
+            {label:'Total Subjects', value:subjects.length, color:dark?'#e2e8f0':'#1e293b'},
+            {label:'Total Credits', value:totalCredits, color:'#6366f1'},
+          ].map((item,i)=>(
+            <div key={i} style={{background:dark?'#1e293b':'#ffffff',border:`1px solid ${border}`,borderRadius:'12px',padding:'16px',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+              <div style={{fontSize:'12px',color:muted,marginBottom:'6px'}}>{item.label}</div>
+              <div style={{fontSize:'28px',fontWeight:700,color:item.color}}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReferenceTab({ dark }) {
+  const border = dark ? '#334155' : '#e2e8f0';
+  const muted = dark ? '#94a3b8' : '#64748b';
+  const sub = dark ? '#cbd5e1' : '#334155';
+  const bg2 = dark ? '#0f172a' : '#f8fafc';
+  const cardStyle = { background:dark?'#1e293b':'#ffffff', border:`1px solid ${border}`, borderRadius:'12px', overflow:'hidden', marginBottom:'14px' };
+
+  const rows100 = [
+    {g:'AA',range:'≥ 80 marks',gp:10},{g:'AB',range:'70 – 79 marks',gp:9},{g:'BB',range:'60 – 69 marks',gp:8},
+    {g:'BC',range:'50 – 59 marks',gp:7},{g:'CC',range:'45 – 49 marks',gp:6},{g:'CD',range:'40 – 44 marks',gp:5},
+    {g:'DD',range:'36 – 39 marks',gp:4},{g:'FF',range:'< 36 marks',gp:0}
+  ];
+  const rows125 = [
+    {g:'AA',range:'≥ 100 marks',gp:10},{g:'AB',range:'88 – 99 marks',gp:9},{g:'BB',range:'75 – 87 marks',gp:8},
+    {g:'BC',range:'63 – 74 marks',gp:7},{g:'CC',range:'56 – 62 marks',gp:6},{g:'CD',range:'50 – 55 marks',gp:5},
+    {g:'DD',range:'45 – 49 marks',gp:4},{g:'FF',range:'< 45 marks',gp:0}
+  ];
+
+  return (
+    <div>
+      <div style={{background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.25)',borderRadius:'10px',padding:'12px 14px',marginBottom:'14px',fontSize:'13px',color:dark?'#a5b4fc':'#4f46e5',lineHeight:1.5}}>
+        <strong>SVNIT Grading System</strong> — Grades are awarded based on total marks out of 100 (without tutorial) or 125 (with tutorial). Attendance below 75% incurs a −1 GP deduction from the final grade point.
+      </div>
+      <GradeTable title="Out of 100 Marks — Standard Scheme" rows={rows100} dark={dark}/>
+      <GradeTable title="Out of 125 Marks — With Tutorial" rows={rows125} dark={dark}/>
+      <div style={{...cardStyle, padding:'16px', marginBottom:0}}>
+        <div style={{fontSize:'13px',fontWeight:600,color:sub,marginBottom:'12px'}}>Quick Grade Points Reference</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
+          {Object.entries(GRADE_POINTS).map(([g,gp])=>(
+            <div key={g} style={{display:'flex',alignItems:'center',gap:'6px',background:bg2,borderRadius:'8px',padding:'6px 14px',border:`1px solid ${border}`}}>
+              <span style={{color:GRADE_COLORS[g],fontWeight:700,fontSize:'14px'}}>{g}</span>
+              <span style={{color:muted,fontSize:'12px'}}>= {gp} GP</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [dark, setDark] = useState(true);
+  const [tab, setTab] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [pwaDismissed, setPwaDismissed] = useState(true);
+
+  useEffect(() => {
+    try { setPwaDismissed(localStorage.getItem('svnit_pwa_dismissed')==='true'); }
+    catch(e) { setPwaDismissed(false); }
+    // Hide banner if app is already installed (display-mode: standalone)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      setPwaDismissed(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.body.style.background = dark ? '#0f172a' : '#f1f5f9';
+  }, [dark]);
+
+  const dismissPwa = () => {
+    try { localStorage.setItem('svnit_pwa_dismissed','true'); } catch(e) {}
+    setPwaDismissed(true);
+  };
+
+  const copyLink = () => {
+    try { navigator.clipboard.writeText(window.location.href); } catch(e) {}
+    setCopied(true);
+    setTimeout(()=>setCopied(false),2000);
+  };
+
+  const tabs = ['Grade Calculator','SGPA Calculator','Reference'];
+  const border = dark ? '#334155' : '#e2e8f0';
+  const muted = dark ? '#94a3b8' : '#64748b';
+  const sub = dark ? '#e2e8f0' : '#1e293b';
+  const bg = dark ? '#0f172a' : '#f1f5f9';
+  const headerBg = dark ? '#1e293b' : '#ffffff';
+
+  return (
+    <div style={{background:bg,minHeight:'100vh',color:sub}}>
+      <div className="header-wrap" style={{background:headerBg,borderBottom:`1px solid ${border}`}}>
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'12px 16px',display:'flex',alignItems:'center',gap:'10px',justifyContent:'space-between'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
+            <div style={{width:'32px',height:'32px',background:'#6366f1',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div className="logo-text">
+              <div style={{fontSize:'13px',fontWeight:700,color:sub,lineHeight:1.1}}>SVNIT</div>
+              <div style={{fontSize:'10px',color:muted,lineHeight:1.1}}>Academic Dashboard</div>
+            </div>
+          </div>
+
+          <div style={{display:'flex',gap:'4px',background:dark?'#0f172a':'#f1f5f9',borderRadius:'24px',padding:'4px',overflowX:'auto',flexShrink:1}}>
+            {tabs.map((t,i)=>(
+              <div key={i} className="tab-pill" onClick={()=>setTab(i)}
+                style={{background:tab===i?'#6366f1':'transparent',color:tab===i?'white':muted}}>
+                {t}
+              </div>
+            ))}
+          </div>
+
+          <div style={{display:'flex',gap:'8px',alignItems:'center',flexShrink:0}}>
+            <button onClick={()=>setShareOpen(true)} title="Share"
+              style={{background:'none',border:`1px solid ${border}`,borderRadius:'8px',padding:'7px',cursor:'pointer',color:muted,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </button>
+            <button onClick={()=>setDark(!dark)} title="Toggle theme"
+              style={{background:'none',border:`1px solid ${border}`,borderRadius:'8px',padding:'7px',cursor:'pointer',color:muted,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              {dark
+                ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{maxWidth:'720px',margin:'0 auto',padding:'16px 16px 80px'}}>
+        {tab===0 && <GradeCalculatorTab dark={dark}/>}
+        {tab===1 && <SGPACalculatorTab dark={dark}/>}
+        {tab===2 && <ReferenceTab dark={dark}/>}
+      </div>
+
+      {shareOpen && (
+        <div className="modal-overlay" onClick={()=>setShareOpen(false)}>
+          <div onClick={e=>e.stopPropagation()}
+            style={{background:dark?'#1e293b':'white',borderRadius:'16px',padding:'24px',width:'min(340px,92%)',border:`1px solid ${border}`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+              <div style={{fontWeight:600,fontSize:'16px',color:sub}}>Share with Friends</div>
+              <button onClick={()=>setShareOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:muted,fontSize:'22px',lineHeight:1}}>×</button>
+            </div>
+            <div style={{textAlign:'center',marginBottom:'16px'}}>
+              <QRCode/>
+              <div style={{fontSize:'12px',color:muted,marginTop:'8px'}}>Scan to open dashboard</div>
+            </div>
+            <div style={{background:dark?'#0f172a':'#f8fafc',borderRadius:'8px',padding:'10px 12px',fontSize:'12px',color:muted,marginBottom:'12px',fontFamily:'monospace',wordBreak:'break-all',border:`1px solid ${border}`}}>
+              {window.location.href}
+            </div>
+            <button className="btn-primary" style={{width:'100%',padding:'10px',fontSize:'14px'}} onClick={copyLink}>
+              {copied ? '✓ Copied to clipboard!' : 'Copy Link'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!pwaDismissed && (
+        <div className="pwa-banner">
+          <div style={{background:dark?'#1e293b':'white',borderTop:`1px solid ${border}`,padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
+            <div style={{width:'38px',height:'38px',background:'#6366f1',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:'13px',fontWeight:600,color:sub}}>Install SVNIT Academic Dashboard</div>
+              <div style={{fontSize:'12px',color:muted}}>For a better experience on your device</div>
+            </div>
+            <div style={{display:'flex',gap:'8px',flexShrink:0}}>
+              <button id="pwa-install-btn" className="btn-primary" style={{fontSize:'12px',padding:'6px 14px',borderRadius:'7px'}} onClick={() => { if(window.__pwaPrompt) { window.__pwaPrompt.prompt(); window.__pwaPrompt.userChoice.then(() => { window.__pwaPrompt = null; setPwaDismissed(true); }); } }}>Install</button>
+              <button onClick={dismissPwa} style={{background:'none',border:`1px solid ${border}`,borderRadius:'7px',padding:'6px 12px',cursor:'pointer',color:muted,fontSize:'12px'}}>Later</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+<script>
+// Capture the beforeinstallprompt event for the Install button
+window.__pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  window.__pwaPrompt = e;
+});
+// Hide banner if app is launched as installed PWA
+window.addEventListener('appinstalled', function() {
+  window.__pwaPrompt = null;
+});
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+</script>
+</body>
+</html>
