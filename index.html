@@ -1,689 +1,274 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SVNIT Academic Dashboard</title>
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="Grade Calculator, SGPA Calculator & Reference for SVNIT students">
-<meta name="theme-color" content="#6366f1">
-<!-- Inline manifest via data URI — no external manifest.json file needed -->
-<link rel="manifest" id="pwa-manifest">
-<script>
-(function() {
-  var manifest = {
-    name: "SVNIT Academic Dashboard",
-    short_name: "SVNIT Diary",
-    description: "Grade Calculator, SGPA Calculator & Reference for SVNIT students",
-    start_url: "./",
-    display: "standalone",
-    background_color: "#0f172a",
-    theme_color: "#6366f1",
-    icons: [
-      {
-        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%236366f1'/%3E%3Cpath d='M96 40L40 68l56 28 56-28-56-28zM40 124l56 28 56-28M40 96l56 28 56-28' fill='none' stroke='white' stroke-width='12' stroke-linecap='round'/%3E%3C/svg%3E",
-        sizes: "192x192",
-        type: "image/svg+xml",
-        purpose: "any maskable"
-      }
-    ]
-  };
-  var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-  var url  = URL.createObjectURL(blob);
-  document.getElementById('pwa-manifest').setAttribute('href', url);
-})();
-</script>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SVNIT Academic Dashboard - Grade &amp; Attendance Calculator</title>
+    <meta name="description" content="Grade calculator, SGPA calculator, and attendance tracker for SVNIT students">
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#6366f1" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="author" content="Lovable" />
+
+    
+    
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/661015ae-1ad1-4a1e-a496-2ef72e4e4167?Expires=1775241486&amp;GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&amp;Signature=XrnX%2F3S%2FzdbGvx4rPYGfYVwkf22rCm1rnRngwYhCRRXYwKrPedILjfyxgT7zlVv78uExjHcuZdp09ipKZjxMhnqyXE3Ydh6j1PIyrqdGEsm2HjqJhAahgKHLGkBGu%2FNLSaTMxxtrCPyKFZ%2BkrFXrKko3QYzj%2BxkU%2B8q7NMU83veCKHw0JWd1eFP6QvXhBwNm8A3ahCsb9XaF4rrt8c4njq8P2Zi6I0AekeXLxRhIH6MQ9XE%2F6ZXQC2LyxLtpXd%2B82MbrUCC0LlyUuHGt52cfY5p%2BktP2hoI3VaP%2BvafOCQKlu%2FWpz1vcJDg4xDMaInTNaahYv3oMSNpoYEx3mgf2hw%3D%3D">
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/661015ae-1ad1-4a1e-a496-2ef72e4e4167?Expires=1775241486&amp;GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&amp;Signature=XrnX%2F3S%2FzdbGvx4rPYGfYVwkf22rCm1rnRngwYhCRRXYwKrPedILjfyxgT7zlVv78uExjHcuZdp09ipKZjxMhnqyXE3Ydh6j1PIyrqdGEsm2HjqJhAahgKHLGkBGu%2FNLSaTMxxtrCPyKFZ%2BkrFXrKko3QYzj%2BxkU%2B8q7NMU83veCKHw0JWd1eFP6QvXhBwNm8A3ahCsb9XaF4rrt8c4njq8P2Zi6I0AekeXLxRhIH6MQ9XE%2F6ZXQC2LyxLtpXd%2B82MbrUCC0LlyUuHGt52cfY5p%2BktP2hoI3VaP%2BvafOCQKlu%2FWpz1vcJDg4xDMaInTNaahYv3oMSNpoYEx3mgf2hw%3D%3D">
+    <meta property="og:title" content="SVNIT Academic Dashboard - Grade &amp; Attendance Calculator">
+  <meta name="twitter:title" content="SVNIT Academic Dashboard - Grade &amp; Attendance Calculator">
+  <meta property="og:description" content="Grade calculator, SGPA calculator, and attendance tracker for SVNIT students">
+  <meta name="twitter:description" content="Grade calculator, SGPA calculator, and attendance tracker for SVNIT students">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <script type="module" crossorigin src="/assets/index-B-JCfSkH.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-C9PvyXyC.css">
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-  #root { min-height: 100vh; }
+	@font-face {
+		font-family: 'CameraPlainVariable';
+		src: url('https://cdn.gpteng.co/mcp-widgets/v1/fonts/CameraPlainVariable.woff2') format('woff2');
+		font-weight: 100 900;
+		font-style: normal;
+		font-display: swap;
+	}
 
-  .toggle-track { width: 44px; height: 24px; border-radius: 12px; cursor: pointer; transition: background 0.2s; position: relative; flex-shrink: 0; }
-  .toggle-thumb { width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-  .tab-pill { padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; white-space: nowrap; user-select: none; }
-  .btn-primary { background: #6366f1; color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s; }
-  .btn-primary:hover { background: #4f46e5; }
-  .circle-progress { transform: rotate(-90deg); transform-origin: 64px 64px; }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
-  .pwa-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; }
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button { opacity: 1; }
-  .header-wrap { position: sticky; top: 0; z-index: 50; }
-  @media (max-width: 600px) {
-    .tab-pill { padding: 6px 10px; font-size: 12px; }
-    .logo-text { display: none; }
-  }
-  @media (max-width: 400px) {
-    .tab-pill { padding: 5px 8px; font-size: 11px; }
-  }
+	#lovable-badge {
+		--badge-bg: #1b1b1b;
+		--badge-text: #c5c1b9;
+		--badge-text-hover: #dcdad5;
+		--badge-radius: 6px;
+		--badge-padding: 8px;
+		--badge-gap: 6px;
+		--badge-shadow: 
+			0 0 0 1px rgba(0, 0, 0, 0.88),
+			0 1px 0 0 rgba(0, 0, 0, 0.04),
+			0 2px 2px -1px rgba(0, 0, 0, 0.08),
+			0 4px 4px -2px rgba(0, 0, 0, 0.08),
+			0 8px 8px -4px rgba(0, 0, 0, 0.08),
+			0 16px 16px -8px rgba(0, 0, 0, 0.08);
+		--badge-transition-duration: 0.2s;
+		--badge-transition-easing: cubic-bezier(0.16, 1, 0.32, 1);
+		--focus-color: #575ECF;
+		--focus-offset: 2px;
+		--focus-width: 2px;
+		
+		position: fixed;
+		bottom: 12px;
+		right: 12px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		z-index: 1000000;
+		background-color: var(--badge-bg);
+		color: var(--badge-text);
+		border-radius: var(--badge-radius);
+		box-shadow: var(--badge-shadow);
+		font-size: 12px;
+		font-family: CameraPlainVariable, "CameraPlainVariable Fallback", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		font-weight: 400 !important;
+		text-transform: none !important;
+		font-feature-settings: normal !important;
+		transform: translateZ(0);
+		will-change: transform, opacity;
+	}
+
+	#lovable-badge-cta {
+		display: flex;
+		align-items: center;
+		gap: var(--badge-gap);
+		padding: 0 var(--badge-padding);
+		height: 100%;
+		color: inherit;
+		text-decoration: none;
+		white-space: nowrap;
+		border-radius: var(--badge-radius) 0 0 var(--badge-radius);
+		transition: 
+			background-color var(--badge-transition-duration) ease,
+			color var(--badge-transition-duration) ease,
+			transform 0.1s ease;
+	}
+
+	#lovable-badge-cta:hover {
+		background: rgba(255, 255, 255, 0.04);
+		color: var(--badge-text-hover);
+	}
+
+	#lovable-badge-cta:active {
+		transform: scale(0.98);
+	}
+
+	#lovable-badge-cta:focus {
+		outline: none;
+	}
+
+	#lovable-badge-cta:focus-visible {
+		outline: var(--focus-width) solid var(--focus-color);
+		outline-offset: var(--focus-offset);
+		z-index: 1;
+	}
+
+	#lovable-badge-text {
+		line-height: 1;
+	}
+
+	#lovable-badge-divider {
+		width: 1px;
+		height: 24px;
+		background-color: rgba(255, 255, 255, 0.04);
+		flex-shrink: 0;
+	}
+
+	#lovable-badge-close {
+		width: 24px;
+		height: 24px;
+		min-width: 24px;
+		min-height: 24px;
+		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0 var(--badge-radius) var(--badge-radius) 0;
+		flex-shrink: 0;
+		transition: 
+			background-color var(--badge-transition-duration) ease,
+			transform 0.1s ease;
+	}
+
+	#lovable-badge-close:hover {
+		background: rgba(255, 255, 255, 0.04);
+	}
+
+	#lovable-badge-close:active {
+		transform: scale(0.92);
+	}
+
+	#lovable-badge-close:focus {
+		outline: none;
+	}
+
+	#lovable-badge-close:focus-visible {
+		outline: var(--focus-width) solid var(--focus-color);
+		outline-offset: calc(var(--focus-offset) * -1);
+		z-index: 1;
+	}
+
+	#lovable-badge-close svg path {
+		fill: var(--badge-text);
+		transition: fill var(--badge-transition-duration) ease;
+	}
+
+	#lovable-badge-close:hover svg path {
+		fill: var(--badge-text-hover);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		#lovable-badge-cta,
+		#lovable-badge-close,
+		#lovable-badge-close svg path {
+			transition: none;
+		}
+		
+		#lovable-badge-cta:active,
+		#lovable-badge-close:active {
+			transform: none;
+		}
+	}
+
+	@media (prefers-contrast: high) {
+		#lovable-badge {
+			--badge-bg: #000;
+			--badge-text: #fff;
+			--badge-text-hover: #fff;
+			border: 2px solid currentColor;
+		}
+		
+		#lovable-badge-cta:focus-visible,
+		#lovable-badge-close:focus-visible {
+			outline-width: 3px;
+		}
+	}
 </style>
-</head>
-<body>
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+<script defer src="/~flock.js" data-proxy-url="/~api/analytics"></script></head>
 
-const GRADE_POINTS = { AA:10, AB:9, BB:8, BC:7, CC:6, CD:5, DD:4, FF:0 };
-const GRADE_COLORS = {
-  AA:'#10b981', AB:'#34d399', BB:'#6366f1', BC:'#8b5cf6',
-  CC:'#f59e0b', CD:'#f97316', DD:'#ef4444', FF:'#dc2626'
-};
+  <body>
+    <div id="root"></div>
+  
+<aside 
+	id="lovable-badge" 
+	role="complementary"
+	dir="ltr"
+	lang="en"
+	aria-label="Edit with Lovable">
+	<a 
+		id="lovable-badge-cta" 
+		target="_blank" 
+		href="https://lovable.dev/projects/9d9b1651-7b80-49e6-81e4-85c46a79f806?utm_source=lovable-badge"
+		rel="noopener"
+		aria-label="Edit with Lovable">
+		<span id="lovable-badge-text">Edit with</span>
+		<svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" fill="none" viewBox="0 0 52 16">
+  <path fill="#FCFBF8" fill-rule="evenodd" d="M20.318 5.25c.643 0 1.206.14 1.69.418a2.81 2.81 0 0 1 1.118 1.191c.266.513.4 1.115.4 1.807s-.134 1.296-.4 1.812a2.81 2.81 0 0 1-1.118 1.193c-.484.278-1.047.418-1.69.418s-1.208-.14-1.695-.418a2.85 2.85 0 0 1-1.125-1.193c-.262-.516-.393-1.12-.393-1.812s.131-1.294.393-1.807a2.848 2.848 0 0 1 1.125-1.191c.487-.279 1.052-.418 1.695-.418Zm0 1.425c-.27 0-.504.076-.7.228-.193.147-.34.37-.443.67-.102.295-.153.66-.153 1.093 0 .435.05.801.153 1.1.102.3.25.524.443.676.196.147.43.22.7.22.27 0 .502-.073.694-.22.193-.152.341-.375.443-.67.103-.299.153-.667.153-1.106 0-.65-.112-1.145-.337-1.481a1.08 1.08 0 0 0-.953-.51ZM32.7 5.25c.61 0 1.127.1 1.549.3.422.197.74.48.953.849.217.368.325.809.325 1.32v2.704c0 .29.02.562.062.812.044.245.108.4.19.466V12h-1.935a5.895 5.895 0 0 1-.105-.684 7.745 7.745 0 0 1-.02-.228 2.293 2.293 0 0 1-.151.203c-.205.242-.47.437-.793.584-.32.143-.685.215-1.094.215-.406 0-.77-.08-1.094-.24a1.845 1.845 0 0 1-.756-.682 1.984 1.984 0 0 1-.27-1.045c0-.606.178-1.069.535-1.388.356-.324.87-.534 1.542-.633l1.125-.16c.225-.032.403-.074.534-.123a.622.622 0 0 0 .288-.196.549.549 0 0 0 .093-.327.65.65 0 0 0-.11-.367.702.702 0 0 0-.32-.27c-.14-.07-.31-.105-.51-.105-.32 0-.576.083-.768.251-.193.164-.298.39-.314.676h-1.923c.016-.434.147-.82.393-1.155.25-.34.596-.604 1.039-.792.442-.189.954-.283 1.535-.283Zm.99 3.498a.98.98 0 0 1-.215.14 2.49 2.49 0 0 1-.584.178l-.473.092c-.315.061-.553.156-.713.283-.155.127-.233.305-.233.534 0 .23.084.412.252.547.168.135.383.203.645.203s.494-.058.694-.173c.201-.118.355-.282.461-.49.11-.21.166-.448.166-.714v-.6Zm4.526-2.375c.065-.125.138-.243.221-.349.197-.25.437-.44.719-.571.282-.135.6-.203.952-.203.528 0 .988.138 1.377.412.389.275.688.67.896 1.186.21.512.314 1.12.314 1.824 0 .7-.107 1.309-.32 1.825-.213.512-.518.906-.915 1.18-.393.275-.854.412-1.383.412-.352 0-.667-.062-.946-.184a1.832 1.832 0 0 1-.7-.554 2.2 2.2 0 0 1-.234-.383V12h-1.843V3h1.862v3.373Zm1.284.296c-.274 0-.51.085-.707.253-.192.163-.338.397-.436.7a3.376 3.376 0 0 0-.148 1.05c0 .406.05.759.148 1.058.098.299.243.53.436.694.197.164.433.246.707.246.279 0 .512-.082.7-.246.193-.164.336-.395.43-.694.099-.3.148-.652.148-1.058 0-.405-.05-.757-.147-1.056-.095-.299-.238-.53-.43-.694a1.015 1.015 0 0 0-.7-.253Zm9.416-1.419c.602 0 1.136.131 1.604.393.466.262.829.643 1.086 1.143.263.5.394 1.097.394 1.794 0 .25-.002.449-.006.596H47.51c.018.288.071.538.164.75a1.3 1.3 0 0 0 .491.596c.214.13.465.196.757.196.319 0 .583-.082.792-.246.209-.167.34-.403.393-.706h1.862a2.48 2.48 0 0 1-.485 1.235 2.54 2.54 0 0 1-1.051.805c-.439.188-.949.283-1.53.283-.655 0-1.225-.125-1.708-.375a2.672 2.672 0 0 1-1.13-1.143c-.267-.508-.4-1.137-.4-1.887 0-.712.14-1.327.418-1.843a2.86 2.86 0 0 1 1.155-1.186c.491-.27 1.051-.405 1.678-.405Zm-.044 1.345c-.274 0-.516.068-.725.203a1.29 1.29 0 0 0-.479.59 2.045 2.045 0 0 0-.132.498h2.562a1.873 1.873 0 0 0-.138-.602 1.061 1.061 0 0 0-.418-.516 1.243 1.243 0 0 0-.67-.173Z" clip-rule="evenodd"/>
+  <path fill="#FCFBF8" d="m26.605 9.995 1.342-4.566h1.924L27.628 12h-2.07l-2.33-6.57h1.98l1.397 4.565Zm-13.013.143h2.256c1.632 0 1.421 1.837 1.418 1.861h-5.603V3h1.93v7.138Zm31.516 1.861h-1.862V3h1.862v8.999Z"/>
+  <path fill="url(#a)" fill-rule="evenodd" d="M2.7 3c1.492 0 2.7 1.192 2.7 2.663v1.012h.9c1.49 0 2.7 1.192 2.7 2.662S7.791 12 6.3 12H0V5.663C0 4.193 1.209 3 2.7 3Z" clip-rule="evenodd"/>
+  <defs>
+    <radialGradient id="a" cx="0" cy="0" r="1" gradientTransform="matrix(-1.54236 7.07838 -10.231 -2.15602 4.627 5.022)" gradientUnits="userSpaceOnUse">
+      <stop offset=".106" stop-color="#FE7B02"/>
+      <stop offset=".394" stop-color="#FE3F21"/>
+      <stop offset=".608" stop-color="#F858BC"/>
+      <stop offset=".929" stop-color="#575ECF"/>
+    </radialGradient>
+  </defs>
+</svg>
 
-function getGrade100(t) {
-  if(t>=80) return 'AA'; if(t>=70) return 'AB'; if(t>=60) return 'BB';
-  if(t>=50) return 'BC'; if(t>=45) return 'CC'; if(t>=40) return 'CD';
-  if(t>=36) return 'DD'; return 'FF';
-}
-function getGrade125(t) {
-  if(t>=100) return 'AA'; if(t>=88) return 'AB'; if(t>=75) return 'BB';
-  if(t>=63) return 'BC'; if(t>=56) return 'CC'; if(t>=50) return 'CD';
-  if(t>=45) return 'DD'; return 'FF';
-}
 
-function Toggle({ on, onChange, dark }) {
-  return (
-    <div onClick={() => onChange(!on)} className="toggle-track"
-      style={{background: on ? '#6366f1' : (dark ? '#334155' : '#cbd5e1')}}>
-      <div className="toggle-thumb" style={{left: on ? '23px' : '3px'}} />
-    </div>
-  );
-}
-
-function InputRow({ label, value, onChange, onBlur, max, dark, inputRef, onEnter }) {
-  const border = dark ? '#334155' : '#e2e8f0';
-  const muted  = dark ? '#94a3b8' : '#64748b';
-  const sub    = dark ? '#cbd5e1' : '#334155';
-  const inputStyle = {
-    background: dark?'#0f172a':'#f8fafc',
-    border: `1px solid ${border}`,
-    color: dark?'#e2e8f0':'#1e293b',
-    borderRadius:'8px', padding:'8px 12px',
-    width:'100px', outline:'none', fontSize:'14px', textAlign:'center'
-  };
-  return (
-    <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'12px'}}>
-      <div style={{flex:1,fontSize:'14px',color:sub}}>
-        {label} <span style={{fontSize:'12px',color:muted}}>/ {max}</span>
-      </div>
-      <input
-        ref={inputRef}
-        type="number" min="0" max={max}
-        style={inputStyle}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onBlur={onBlur}
-        onKeyDown={e => { if(e.key==='Enter' && onEnter) onEnter(); }}
-        placeholder="0"
-      />
-    </div>
-  );
-}
-
-function GradeTable({ title, rows, dark }) {
-  const border = dark ? '#334155' : '#e2e8f0';
-  const muted  = dark ? '#94a3b8' : '#64748b';
-  const sub    = dark ? '#cbd5e1' : '#334155';
-  const bg2    = dark ? '#0f172a' : '#f8fafc';
-  const cardStyle = { background:dark?'#1e293b':'#ffffff', border:`1px solid ${border}`, borderRadius:'12px', overflow:'hidden', marginBottom:'14px' };
-  return (
-    <div style={cardStyle}>
-      <div style={{padding:'14px 16px',borderBottom:`1px solid ${border}`,display:'flex',alignItems:'center',gap:'8px'}}>
-        <div style={{width:'4px',height:'16px',background:'#6366f1',borderRadius:'2px'}}></div>
-        <div style={{fontSize:'14px',fontWeight:600,color:sub}}>{title}</div>
-      </div>
-      <table style={{width:'100%',borderCollapse:'collapse'}}>
-        <thead>
-          <tr style={{background:bg2}}>
-            {['Grade','Marks Range','Grade Points'].map((h,i)=>(
-              <th key={i} style={{padding:'10px 14px',fontSize:'11px',color:muted,fontWeight:600,textAlign:i===2?'center':'left',letterSpacing:'0.05em'}}>{h.toUpperCase()}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r,i)=>(
-            <tr key={i} style={{borderTop:`1px solid ${border}`}}>
-              <td style={{padding:'10px 14px'}}>
-                <span style={{background:GRADE_COLORS[r.g]+'22',color:GRADE_COLORS[r.g],padding:'3px 12px',borderRadius:'5px',fontSize:'13px',fontWeight:700}}>{r.g}</span>
-              </td>
-              <td style={{padding:'10px 14px',fontSize:'13px',color:sub}}>{r.range}</td>
-              <td style={{padding:'10px 14px',fontSize:'14px',fontWeight:700,textAlign:'center',color:dark?'#e2e8f0':'#1e293b'}}>{r.gp}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// Single QRCode component — generates real QR via qrcodejs library
-const QRCode = () => {
-  React.useEffect(() => {
-    if (window.QRCode) {
-      const container = document.getElementById('qrcode-gen');
-      if (container) {
-        container.innerHTML = '';
-        new window.QRCode(container, {
-          text: 'https://hariomraghu214.github.io/Svnit_diary/',
-          width: 160,
-          height: 160,
-          colorDark: "#000000",
-          colorLight: "#ffffff"
-        });
-      }
-    }
-  }, []);
-  return <div id="qrcode-gen" style={{ display: 'flex', justifyContent: 'center', padding: '10px', background: 'white', borderRadius: '8px' }}></div>;
-};
-
-function GradeCalculatorTab({ dark }) {
-  const [withTutorial, setWithTutorial] = useState(false);
-  const [attendance, setAttendance] = useState(false);
-  const [midSem, setMidSem] = useState('');
-  const [endSem, setEndSem] = useState('');
-  const [quiz1, setQuiz1] = useState('');
-  const [quiz2, setQuiz2] = useState('');
-  const [tutorial, setTutorial] = useState('');
-
-  const refs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
-
-  const handleChange = (setter) => (raw) => {
-    if (raw === '' || raw === '-') { setter(''); return; }
-    setter(raw);
-  };
-
-  const handleBlur = (setter, max) => () => {
-    setter(prev => {
-      const n = parseFloat(prev);
-      if (isNaN(n) || prev === '') return '';
-      return String(Math.min(Math.max(0, n), max));
-    });
-  };
-
-  const maxTotal = withTutorial ? 125 : 100;
-  const clamp = (v, max) => { const n = parseFloat(v); return isNaN(n) ? 0 : Math.min(Math.max(0,n), max); };
-  const total = clamp(midSem,30)+clamp(endSem,50)+clamp(quiz1,10)+clamp(quiz2,10)+(withTutorial?clamp(tutorial,25):0);
-  const grade = withTutorial ? getGrade125(total) : getGrade100(total);
-  let gp = GRADE_POINTS[grade];
-  if(attendance) gp = Math.max(0, gp-1);
-
-  const muted = dark ? '#94a3b8' : '#64748b';
-  const sub   = dark ? '#cbd5e1' : '#334155';
-  const bg2   = dark ? '#0f172a' : '#f8fafc';
-  const border= dark ? '#334155' : '#e2e8f0';
-  const cardStyle = {
-    background: dark?'#1e293b':'#ffffff',
-    border: `1px solid ${border}`,
-    borderRadius:'12px', padding:'16px', marginBottom:'14px'
-  };
-
-  const fields = [
-    { label:'Mid-Sem',  max:30, value:midSem,  setter:setMidSem,  ref:refs[0], next:refs[1] },
-    { label:'End-Sem',  max:50, value:endSem,  setter:setEndSem,  ref:refs[1], next:refs[2] },
-    { label:'Quiz 1',   max:10, value:quiz1,   setter:setQuiz1,   ref:refs[2], next:refs[3] },
-    { label:'Quiz 2',   max:10, value:quiz2,   setter:setQuiz2,   ref:refs[3], next: withTutorial ? refs[4] : null },
-    ...(withTutorial ? [{ label:'Tutorial', max:25, value:tutorial, setter:setTutorial, ref:refs[4], next:null }] : []),
-  ];
-
-  return (
-    <div>
-      <div style={cardStyle}>
-        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'12px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Options</div>
-        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
-          <Toggle on={withTutorial} onChange={v=>{setWithTutorial(v);if(!v)setTutorial('');}} dark={dark}/>
-          <span style={{fontSize:'14px',color:sub}}>With Tutorial (125 Marks)</span>
-        </div>
-        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-          <Toggle on={attendance} onChange={setAttendance} dark={dark}/>
-          <span style={{fontSize:'14px',color:sub}}>Attendance 60–75% (−1 GP)</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-        </div>
-      </div>
-
-      <div style={cardStyle}>
-        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'14px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Marks Input</div>
-        {fields.map(f => (
-          <InputRow
-            key={f.label}
-            label={f.label}
-            max={f.max}
-            value={f.value}
-            dark={dark}
-            inputRef={f.ref}
-            onChange={handleChange(f.setter)}
-            onBlur={handleBlur(f.setter, f.max)}
-            onEnter={() => { if(f.next && f.next.current) f.next.current.focus(); }}
-          />
-        ))}
-      </div>
-
-      <div style={cardStyle}>
-        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'16px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Result</div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',textAlign:'center'}}>
-          {[
-            {label:'Total Marks', value:`${total.toFixed(1)}`, sub2:`/ ${maxTotal}`, color:dark?'#e2e8f0':'#1e293b'},
-            {label:'Grade',       value:grade,                 sub2:'',              color:GRADE_COLORS[grade]},
-            {label:'Grade Points',value:String(gp),            sub2:'/ 10',          color:'#6366f1'},
-          ].map((item,i)=>(
-            <div key={i} style={{background:bg2,borderRadius:'10px',padding:'14px 8px'}}>
-              <div style={{fontSize:'11px',color:muted,marginBottom:'6px'}}>{item.label}</div>
-              <div style={{fontSize:'26px',fontWeight:700,color:item.color,lineHeight:1}}>{item.value}</div>
-              {item.sub2 && <div style={{fontSize:'11px',color:muted,marginTop:'3px'}}>{item.sub2}</div>}
-            </div>
-          ))}
-        </div>
-        {attendance && (
-          <div style={{marginTop:'12px',background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.3)',borderRadius:'8px',padding:'10px 14px',fontSize:'13px',color:'#f59e0b',display:'flex',gap:'8px',alignItems:'center'}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Attendance penalty applied: −1 GP (base grade: {grade} = {GRADE_POINTS[grade]} GP)
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SGPACalculatorTab({ dark }) {
-  const [subjects, setSubjects] = useState([]);
-  const [name, setName] = useState('');
-  const [credits, setCredits] = useState('3');
-  const [grade, setGrade] = useState('AA');
-
-  const placeholders = ['e.g., Thermodynamics','e.g., Engineering Graphics','e.g., Fluid Mechanics','e.g., Data Structures','e.g., Mathematics III'];
-  const ph = placeholders[subjects.length % placeholders.length];
-
-  const addSubject = () => {
-    if(!name.trim()) return;
-    setSubjects([...subjects, {id:Date.now(), name:name.trim(), credits:parseInt(credits), grade}]);
-    setName('');
-  };
-
-  const totalCredits = subjects.reduce((a,s)=>a+s.credits,0);
-  const weightedSum = subjects.reduce((a,s)=>a+s.credits*GRADE_POINTS[s.grade],0);
-  const sgpa = totalCredits===0 ? 0 : weightedSum/totalCredits;
-
-  const border = dark ? '#334155' : '#e2e8f0';
-  const muted = dark ? '#94a3b8' : '#64748b';
-  const sub = dark ? '#cbd5e1' : '#334155';
-  const bg2 = dark ? '#0f172a' : '#f8fafc';
-  const cardStyle = { background:dark?'#1e293b':'#ffffff', border:`1px solid ${border}`, borderRadius:'12px', marginBottom:'14px' };
-  const inputStyle = { background:bg2, border:`1px solid ${border}`, color:dark?'#e2e8f0':'#1e293b', borderRadius:'8px', padding:'8px 12px', width:'100%', outline:'none', fontSize:'14px' };
-  const selectStyle = { background:bg2, border:`1px solid ${border}`, color:dark?'#e2e8f0':'#1e293b', borderRadius:'8px', padding:'8px 12px', outline:'none', fontSize:'14px', width:'100%', cursor:'pointer' };
-
-  const circumference = 2*Math.PI*54;
-  const offset = circumference - (sgpa/10)*circumference;
-
-  return (
-    <div>
-      <div style={{...cardStyle, padding:'16px'}}>
-        <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'12px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Add Subject</div>
-        <input style={{...inputStyle, marginBottom:'10px'}} placeholder={ph} value={name}
-          onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addSubject()}/>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:'10px',alignItems:'end'}}>
-          <div>
-            <div style={{fontSize:'12px',color:muted,marginBottom:'4px'}}>Credits</div>
-            <select style={selectStyle} value={credits} onChange={e=>setCredits(e.target.value)}>
-              {[1,2,3,4,5].map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <div style={{fontSize:'12px',color:muted,marginBottom:'4px'}}>Grade</div>
-            <select style={selectStyle} value={grade} onChange={e=>setGrade(e.target.value)}>
-              {Object.keys(GRADE_POINTS).map(g=><option key={g} value={g}>{g} ({GRADE_POINTS[g]} GP)</option>)}
-            </select>
-          </div>
-          <button className="btn-primary" onClick={addSubject} style={{height:'38px',whiteSpace:'nowrap',borderRadius:'8px'}}>
-            + Add
-          </button>
-        </div>
-      </div>
-
-      <div style={{...cardStyle, overflow:'hidden'}}>
-        {subjects.length===0 ? (
-          <div style={{padding:'36px',textAlign:'center',color:muted}}>
-            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{margin:'0 auto 12px',display:'block',opacity:0.35}}>
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-            </svg>
-            <div style={{fontSize:'14px',fontWeight:500,marginBottom:'4px'}}>No subjects added yet</div>
-            <div style={{fontSize:'13px',opacity:0.7}}>Add a subject above to get started</div>
-          </div>
-        ) : (
-          <table style={{width:'100%',borderCollapse:'collapse'}}>
-            <thead>
-              <tr style={{background:bg2}}>
-                {['Subject','Cr','Grade','GP',''].map((h,i)=>(
-                  <th key={i} style={{padding:'10px 12px',fontSize:'11px',color:muted,fontWeight:600,textAlign:i===0?'left':'center'}}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {subjects.map(s=>(
-                <tr key={s.id} style={{borderTop:`1px solid ${border}`}}>
-                  <td style={{padding:'10px 12px',fontSize:'13px',color:sub,maxWidth:'140px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</td>
-                  <td style={{padding:'10px 12px',fontSize:'13px',textAlign:'center',color:muted}}>{s.credits}</td>
-                  <td style={{padding:'10px 12px',textAlign:'center'}}>
-                    <span style={{background:GRADE_COLORS[s.grade]+'22',color:GRADE_COLORS[s.grade],padding:'3px 10px',borderRadius:'5px',fontSize:'12px',fontWeight:700}}>{s.grade}</span>
-                  </td>
-                  <td style={{padding:'10px 12px',fontSize:'13px',textAlign:'center',fontWeight:600,color:dark?'#e2e8f0':'#1e293b'}}>{GRADE_POINTS[s.grade]}</td>
-                  <td style={{padding:'10px 8px',textAlign:'center'}}>
-                    <button onClick={()=>setSubjects(subjects.filter(x=>x.id!==s.id))}
-                      style={{background:'none',border:'none',cursor:'pointer',color:'#ef4444',fontSize:'18px',lineHeight:1,padding:'0 4px'}}>×</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'14px',alignItems:'stretch'}}>
-        <div style={{...cardStyle, padding:'20px', textAlign:'center', marginBottom:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-          <div style={{fontSize:'11px',fontWeight:600,color:muted,marginBottom:'12px',textTransform:'uppercase',letterSpacing:'0.08em'}}>SGPA</div>
-          <svg width="128" height="128" viewBox="0 0 128 128">
-            <circle cx="64" cy="64" r="54" fill="none" stroke={dark?'#334155':'#e2e8f0'} strokeWidth="10"/>
-            <circle cx="64" cy="64" r="54" fill="none" stroke="#6366f1" strokeWidth="10"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              className="circle-progress"
-              style={{transition:'stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)'}}/>
-            <text x="64" y="60" textAnchor="middle" fontSize="22" fontWeight="700" fill={dark?'#e2e8f0':'#1e293b'}>{sgpa.toFixed(2)}</text>
-            <text x="64" y="78" textAnchor="middle" fontSize="12" fill={muted}>out of 10</text>
-          </svg>
-        </div>
-        <div style={{display:'grid',gridTemplateRows:'1fr 1fr',gap:'14px'}}>
-          {[
-            {label:'Total Subjects', value:subjects.length, color:dark?'#e2e8f0':'#1e293b'},
-            {label:'Total Credits', value:totalCredits, color:'#6366f1'},
-          ].map((item,i)=>(
-            <div key={i} style={{background:dark?'#1e293b':'#ffffff',border:`1px solid ${border}`,borderRadius:'12px',padding:'16px',display:'flex',flexDirection:'column',justifyContent:'center'}}>
-              <div style={{fontSize:'12px',color:muted,marginBottom:'6px'}}>{item.label}</div>
-              <div style={{fontSize:'28px',fontWeight:700,color:item.color}}>{item.value}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ReferenceTab({ dark }) {
-  const border = dark ? '#334155' : '#e2e8f0';
-  const muted = dark ? '#94a3b8' : '#64748b';
-  const sub = dark ? '#cbd5e1' : '#334155';
-  const bg2 = dark ? '#0f172a' : '#f8fafc';
-  const cardStyle = { background:dark?'#1e293b':'#ffffff', border:`1px solid ${border}`, borderRadius:'12px', overflow:'hidden', marginBottom:'14px' };
-
-  const rows100 = [
-    {g:'AA',range:'≥ 80 marks',gp:10},{g:'AB',range:'70 – 79 marks',gp:9},{g:'BB',range:'60 – 69 marks',gp:8},
-    {g:'BC',range:'50 – 59 marks',gp:7},{g:'CC',range:'45 – 49 marks',gp:6},{g:'CD',range:'40 – 44 marks',gp:5},
-    {g:'DD',range:'36 – 39 marks',gp:4},{g:'FF',range:'< 36 marks',gp:0}
-  ];
-  const rows125 = [
-    {g:'AA',range:'≥ 100 marks',gp:10},{g:'AB',range:'88 – 99 marks',gp:9},{g:'BB',range:'75 – 87 marks',gp:8},
-    {g:'BC',range:'63 – 74 marks',gp:7},{g:'CC',range:'56 – 62 marks',gp:6},{g:'CD',range:'50 – 55 marks',gp:5},
-    {g:'DD',range:'45 – 49 marks',gp:4},{g:'FF',range:'< 45 marks',gp:0}
-  ];
-
-  return (
-    <div>
-      <div style={{background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.25)',borderRadius:'10px',padding:'12px 14px',marginBottom:'14px',fontSize:'13px',color:dark?'#a5b4fc':'#4f46e5',lineHeight:1.5}}>
-        <strong>SVNIT Grading System</strong> — Grades are awarded based on total marks out of 100 (without tutorial) or 125 (with tutorial). Attendance below 75% incurs a −1 GP deduction from the final grade point.
-      </div>
-      <GradeTable title="Out of 100 Marks — Standard Scheme" rows={rows100} dark={dark}/>
-      <GradeTable title="Out of 125 Marks — With Tutorial" rows={rows125} dark={dark}/>
-      <div style={{...cardStyle, padding:'16px', marginBottom:0}}>
-        <div style={{fontSize:'13px',fontWeight:600,color:sub,marginBottom:'12px'}}>Quick Grade Points Reference</div>
-        <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
-          {Object.entries(GRADE_POINTS).map(([g,gp])=>(
-            <div key={g} style={{display:'flex',alignItems:'center',gap:'6px',background:bg2,borderRadius:'8px',padding:'6px 14px',border:`1px solid ${border}`}}>
-              <span style={{color:GRADE_COLORS[g],fontWeight:700,fontSize:'14px'}}>{g}</span>
-              <span style={{color:muted,fontSize:'12px'}}>= {gp} GP</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  const [dark, setDark] = useState(true);
-  const [tab, setTab] = useState(0);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [pwaDismissed, setPwaDismissed] = useState(true);
-  // installPrompt held in a ref so it's always current without re-renders
-  const installPromptRef = useRef(null);
-  const [installReady, setInstallReady] = useState(false);
-
-  useEffect(() => {
-    // Restore dismissed state
-    try {
-      if (localStorage.getItem('svnit_pwa_dismissed') === 'true') return;
-    } catch(e) {}
-
-    // Already installed as standalone — no need to show banner
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      return;
-    }
-
-    // Listen for Chrome's install prompt — may fire before or after mount
-    const onPrompt = (e) => {
-      e.preventDefault();
-      installPromptRef.current = e;
-      setInstallReady(true);
-      setPwaDismissed(false);
-    };
-
-    // If prompt already captured by the plain script below, grab it
-    if (window.__pwaPrompt) {
-      installPromptRef.current = window.__pwaPrompt;
-      setInstallReady(true);
-      setPwaDismissed(false);
-    }
-
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    window.addEventListener('appinstalled', () => {
-      installPromptRef.current = null;
-      setInstallReady(false);
-      setPwaDismissed(true);
-    });
-
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
-  }, []);
-
-  useEffect(() => {
-    document.body.style.background = dark ? '#0f172a' : '#f1f5f9';
-  }, [dark]);
-
-  const dismissPwa = () => {
-    try { localStorage.setItem('svnit_pwa_dismissed','true'); } catch(e) {}
-    setPwaDismissed(true);
-  };
-
-  const handleInstall = async () => {
-    const prompt = installPromptRef.current;
-    if (!prompt) return;
-    try {
-      await prompt.prompt();
-      const { outcome } = await prompt.userChoice;
-      if (outcome === 'accepted') {
-        installPromptRef.current = null;
-        setInstallReady(false);
-        setPwaDismissed(true);
-      }
-    } catch(err) {
-      console.warn('Install prompt error:', err);
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'SVNIT Academic Dashboard',
-          text: 'Check out this Attendance & Grade Tracker for SVNIT students!',
-          url: 'https://hariomraghu214.github.io/Svnit_diary/',
-        });
-      } catch (err) {
-        console.log("Share failed:", err);
-      }
-    } else {
-      setShareOpen(true);
-    }
-  };
-
-  const copyLink = () => {
-    try { navigator.clipboard.writeText('https://hariomraghu214.github.io/Svnit_diary/'); } catch(e) {}
-    setCopied(true);
-    setTimeout(()=>setCopied(false),2000);
-  };
-
-  const tabs = ['Grade Calculator','SGPA Calculator','Reference'];
-  const border = dark ? '#334155' : '#e2e8f0';
-  const muted = dark ? '#94a3b8' : '#64748b';
-  const sub = dark ? '#e2e8f0' : '#1e293b';
-  const bg = dark ? '#0f172a' : '#f1f5f9';
-  const headerBg = dark ? '#1e293b' : '#ffffff';
-
-  return (
-    <div style={{background:bg,minHeight:'100vh',color:sub}}>
-      <div className="header-wrap" style={{background:headerBg,borderBottom:`1px solid ${border}`}}>
-        <div style={{maxWidth:'720px',margin:'0 auto',padding:'12px 16px',display:'flex',alignItems:'center',gap:'10px',justifyContent:'space-between'}}>
-          <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
-            <div style={{width:'32px',height:'32px',background:'#6366f1',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            </div>
-            <div className="logo-text">
-              <div style={{fontSize:'13px',fontWeight:700,color:sub,lineHeight:1.1}}>SVNIT</div>
-              <div style={{fontSize:'10px',color:muted,lineHeight:1.1}}>Academic Dashboard</div>
-            </div>
-          </div>
-
-          <div style={{display:'flex',gap:'4px',background:dark?'#0f172a':'#f1f5f9',borderRadius:'24px',padding:'4px',overflowX:'auto',flexShrink:1}}>
-            {tabs.map((t,i)=>(
-              <div key={i} className="tab-pill" onClick={()=>setTab(i)}
-                style={{background:tab===i?'#6366f1':'transparent',color:tab===i?'white':muted}}>
-                {t}
-              </div>
-            ))}
-          </div>
-
-          <div style={{display:'flex',gap:'8px',alignItems:'center',flexShrink:0}}>
-            <button onClick={handleShare} title="Share"
-              style={{background:'none',border:`1px solid ${border}`,borderRadius:'8px',padding:'7px',cursor:'pointer',color:muted,display:'flex',alignItems:'center',justifyContent:'center'}}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            </button>
-            <button onClick={()=>setDark(!dark)} title="Toggle theme"
-              style={{background:'none',border:`1px solid ${border}`,borderRadius:'8px',padding:'7px',cursor:'pointer',color:muted,display:'flex',alignItems:'center',justifyContent:'center'}}>
-              {dark
-                ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-              }
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{maxWidth:'720px',margin:'0 auto',padding:'16px 16px 80px'}}>
-        {tab===0 && <GradeCalculatorTab dark={dark}/>}
-        {tab===1 && <SGPACalculatorTab dark={dark}/>}
-        {tab===2 && <ReferenceTab dark={dark}/>}
-      </div>
-
-      {shareOpen && (
-        <div className="modal-overlay" onClick={()=>setShareOpen(false)}>
-          <div onClick={e=>e.stopPropagation()}
-            style={{background:dark?'#1e293b':'white',borderRadius:'16px',padding:'24px',width:'min(340px,92%)',border:`1px solid ${border}`}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-              <div style={{fontWeight:600,fontSize:'16px',color:sub}}>Share with Friends</div>
-              <button onClick={()=>setShareOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:muted,fontSize:'22px',lineHeight:1}}>×</button>
-            </div>
-            <div style={{textAlign:'center',marginBottom:'16px'}}>
-              <QRCode/>
-              <div style={{fontSize:'12px',color:muted,marginTop:'8px'}}>Scan to open dashboard</div>
-            </div>
-            <div style={{background:dark?'#0f172a':'#f8fafc',borderRadius:'8px',padding:'10px 12px',fontSize:'12px',color:muted,marginBottom:'12px',fontFamily:'monospace',wordBreak:'break-all',border:`1px solid ${border}`}}>
-              https://hariomraghu214.github.io/Svnit_diary/
-            </div>
-            <button className="btn-primary" style={{width:'100%',padding:'10px',fontSize:'14px'}} onClick={copyLink}>
-              {copied ? '✓ Copied to clipboard!' : 'Copy Link'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!pwaDismissed && installReady && (
-        <div className="pwa-banner">
-          <div style={{background:dark?'#1e293b':'white',borderTop:`1px solid ${border}`,padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
-            <div style={{width:'38px',height:'38px',background:'#6366f1',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            </div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:'13px',fontWeight:600,color:sub}}>Install SVNIT Academic Dashboard</div>
-              <div style={{fontSize:'12px',color:muted}}>Add to home screen for quick access</div>
-            </div>
-            <div style={{display:'flex',gap:'8px',flexShrink:0}}>
-              <button className="btn-primary" style={{fontSize:'12px',padding:'6px 14px',borderRadius:'7px'}} onClick={handleInstall}>
-                Install
-              </button>
-              <button onClick={dismissPwa} style={{background:'none',border:`1px solid ${border}`,borderRadius:'7px',padding:'6px 12px',cursor:'pointer',color:muted,fontSize:'12px'}}>Later</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-ReactDOM.render(<App/>, document.getElementById('root'));
-</script>
+	</a>
+	
+	<span id="lovable-badge-divider" aria-hidden="true"></span>
+	
+	<button 
+		id="lovable-badge-close"
+		aria-label="Dismiss"
+		title="Dismiss"
+		type="button">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16" aria-hidden="true">
+			<path d="M10.646 4.646a.5.5 0 1 1 .707.708L8.707 8l2.646 2.646a.5.5 0 1 1-.707.707L8 8.707l-2.646 2.646a.5.5 0 1 1-.708-.707L7.293 8 4.646 5.354a.5.5 0 1 1 .708-.708L8 7.293l2.646-2.647Z"/>
+		</svg>
+	</button>
+</aside>
 <script>
-// Capture beforeinstallprompt ASAP (before React mounts)
-// React's useEffect will pick this up via window.__pwaPrompt
-window.__pwaPrompt = null;
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  window.__pwaPrompt = e;
-});
-window.addEventListener('appinstalled', function() {
-  window.__pwaPrompt = null;
-});
+	// Don't show the lovable-badge if the page is in an iframe or if it's being rendered by puppeteer (screenshot service)
+	if (window.self !== window.top || navigator.userAgent.includes('puppeteer')) {
+		// the page is in an iframe
+		var badge = document.getElementById('lovable-badge');
+		if (badge) {
+			badge.style.display = 'none';
+		}
+	}
 
-// Register an inline Service Worker via Blob URL — no sw.js file needed
-if ('serviceWorker' in navigator) {
-  var swCode = [
-    "const CACHE = 'svnit-v1';",
-    "self.addEventListener('install', e => {",
-    "  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])));",
-    "  self.skipWaiting();",
-    "});",
-    "self.addEventListener('activate', e => {",
-    "  e.waitUntil(clients.claim());",
-    "});",
-    "self.addEventListener('fetch', e => {",
-    "  e.respondWith(",
-    "    caches.match(e.request).then(r => r || fetch(e.request))",
-    "  );",
-    "});"
-  ].join('\n');
-  var swBlob = new Blob([swCode], { type: 'application/javascript' });
-  var swUrl  = URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swUrl).catch(function(err) {
-    // Blob-URL SW may be blocked in some browsers — silently ignore
-    console.warn('SW registration skipped:', err.message);
-  });
-}
+	// Add click event listener to close button with animation
+	var closeButton = document.getElementById('lovable-badge-close');
+	if (closeButton) {
+		closeButton.addEventListener('click', function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			var badge = document.getElementById('lovable-badge');
+			if (badge) {
+				badge.classList.add('closing');
+				setTimeout(function() {
+					if (badge) {
+						badge.style.display = 'none';
+					}
+				}, 240);
+			}
+		});
+	}
 </script>
 </body>
 </html>
